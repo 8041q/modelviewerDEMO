@@ -3,6 +3,40 @@ const controlsContainer = document.getElementById('model-controls');
 
 let modelsConfig = null;
 let currentModel = null;
+let hideUIControls = false;
+let modelKeysArray = [];
+
+// Get model name by numeric index
+function getModelByIndex(index) {
+  if (index < 0 || index >= modelKeysArray.length) return null;
+  return modelKeysArray[index];
+}
+
+// Parse URL query parameter for hideUI toggle
+function parseURLParams() {
+  const params = new URLSearchParams(window.location.search);
+  hideUIControls = params.get('hideUI') === 'true';
+}
+
+// Apply UI visibility based on hideUIControls flag
+function applyUIVisibility() {
+  if (hideUIControls) {
+    controlsContainer.classList.add('hidden');
+  } else {
+    controlsContainer.classList.remove('hidden');
+  }
+}
+
+// Handle hash changes for model selection
+window.addEventListener('hashchange', () => {
+  const hash = window.location.hash.slice(1);
+  if (hash === '') return;
+  const modelIndex = parseInt(hash, 10);
+  if (!isNaN(modelIndex)) {
+    const modelName = getModelByIndex(modelIndex);
+    if (modelName) setModel(modelName);
+  }
+});
 
 // Fetch JSON once at page load
 async function loadHotspotConfig() {
@@ -10,6 +44,7 @@ async function loadHotspotConfig() {
     const res = await fetch('hotspot.json');
     if (!res.ok) throw new Error('Failed to load hotspot.json');
     modelsConfig = await res.json();
+    parseURLParams();
     initializeViewer();
   } catch (err) {
     console.error(err);
@@ -17,20 +52,40 @@ async function loadHotspotConfig() {
 }
 
 function initializeViewer() {
-  const models = Object.keys(modelsConfig.models);
-  if (!models.length) return console.error('No models in JSON');
+  modelKeysArray = Object.keys(modelsConfig.models);
+  if (!modelKeysArray.length) return console.error('No models in JSON');
 
   // Create buttons for each model
-  models.forEach((modelName, index) => {
+  modelKeysArray.forEach((modelName, index) => {
     const btn = document.createElement('button');
     btn.textContent = modelsConfig.models[modelName].displayName || modelName;
-    btn.onclick = () => setModel(modelName);
+    btn.onclick = () => {
+      window.location.hash = index.toString();
+      setModel(modelName);
+    };
     if (index === 0) btn.classList.add('active');
     controlsContainer.appendChild(btn);
   });
 
-  // Load first model
-  setModel(models[0]);
+  // Check for hash in URL, otherwise load first model
+  const hash = window.location.hash.slice(1);
+  if (hash === '' || hash === undefined) {
+    setModel(modelKeysArray[0]);
+  } else {
+    const modelIndex = parseInt(hash, 10);
+    if (!isNaN(modelIndex)) {
+      const modelName = getModelByIndex(modelIndex);
+      if (modelName) {
+        setModel(modelName);
+      } else {
+        setModel(modelKeysArray[0]);
+      }
+    } else {
+      setModel(modelKeysArray[0]);
+    }
+  }
+  
+  applyUIVisibility();
 }
 
 function clearHotspots() {
@@ -91,6 +146,14 @@ function setModel(modelName) {
   controlsContainer.querySelectorAll('button').forEach(btn => {
     btn.classList.toggle('active', btn.textContent === (modelsConfig.models[modelName].displayName || modelName));
   });
+  
+  // Update URL hash to reflect current model (find index of model)
+  const modelIndex = modelKeysArray.indexOf(modelName);
+  if (modelIndex >= 0) {
+    window.location.hash = modelIndex.toString();
+  }
+  
+  applyUIVisibility();
 
   viewer.addEventListener('load', () => addHotspots(modelName), { once: true });
 }

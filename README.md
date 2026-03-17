@@ -40,3 +40,11 @@ Current model index mapping (from `hotspot.json`)
 - `#1` — Headboard
 
 Enjoy — let me know if you want the README expanded or the license holder changed.
+
+```
+
+Next Implementation
+
+GLB Compression (DRACO + KTX2)
+Once models are finalised, run them through gltf-transform to apply DRACO geometry compression (60–90% mesh reduction) and KTX2/Basis texture compression (4–8× smaller, GPU-native). This is a one-time CLI step per file and requires no code changes — model-viewer already ships with the necessary decoders. Prioritise when any GLB exceeds 5MB, as this will be the single largest load-time improvement available.
+```

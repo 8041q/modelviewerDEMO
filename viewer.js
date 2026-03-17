@@ -6,6 +6,8 @@ let currentModel = null;
 let hideUIControls = false;
 let modelKeysArray = [];
 
+let loadAbortController = null;
+
 // Get model name by numeric index
 function getModelByIndex(index) {
   if (index < 0 || index >= modelKeysArray.length) return null;
@@ -136,9 +138,13 @@ function playAnimation(animationName, hotspot) {
 }
 
 function setModel(modelName) {
-  if (!modelsConfig || !modelsConfig.models[modelName]) return;
+  if (!modelsConfig?.models[modelName]) return;
+  if (currentModel === modelName) return;
 
-  currentModel = modelName;
+  // Cancel any pending load listener
+  if (loadAbortController) loadAbortController.abort();
+  loadAbortController = new AbortController();
+
   clearHotspots();
   stopAnimations();
 
@@ -157,7 +163,11 @@ function setModel(modelName) {
   
   applyUIVisibility();
 
-  viewer.addEventListener('load', () => addHotspots(modelName), { once: true });
+  viewer.addEventListener(
+    'load',
+    () => addHotspots(modelName),
+    { once: true, signal: loadAbortController.signal }
+  );
 }
 
 function stopAnimations() {

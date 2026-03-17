@@ -22,8 +22,10 @@ function parseURLParams() {
 function applyUIVisibility() {
   if (hideUIControls) {
     controlsContainer.classList.add('hidden');
+    document.body.classList.add('hide-ui');
   } else {
     controlsContainer.classList.remove('hidden');
+    document.body.classList.remove('hide-ui');
   }
 }
 

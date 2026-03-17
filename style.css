@@ -13,6 +13,10 @@ model-viewer {
   background-color: #f5f5f5;
 }
 
+body.hide-ui model-viewer {
+  height: 100vh;
+}
+
 model-viewer::part(hotspot) {
   z-index: 1000 !important;
   pointer-events: auto;

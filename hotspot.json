@@ -1,7 +1,7 @@
 {
   "models": {
     "Z7z": {
-      "file": "Z7z.glb",
+      "file": "Z7z-comp.glb",
       "displayName": "Z7z Bed",
       "hotspots": [
         {
@@ -17,7 +17,7 @@
       ]
     },
     "headboard": {
-      "file": "headboard.glb",
+      "file": "headboard-comp.glb",
       "displayName": "Headboard",
       "hotspots": []
     }

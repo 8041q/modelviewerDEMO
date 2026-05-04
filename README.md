@@ -31,15 +31,17 @@ A tiny demo that loads 3D models and displays interactive hotspots. The viewer c
 ## Usage URLs
 
 The viewer supports two URL controls:
-- Query parameter `hideUI=true` or `hideUI=false` to hide/show the viewer controls.
+- Query parameter `hideUI=true` or `hideUI=false` to hide/show the bed controller image panel and its hotspots.
 - Hash `#<index>` to open a specific model by numeric index (0-based) matching the order in `hotspot.json`.
 
 ### Examples
 
-- empty — default: shows UI and loads the first model.
-- `#0` — loads model index 0 (first model) and shows UI.
-- `?hideUI=true#0` — loads model index 0 and hides the UI controls.
-- `?hideUI=false#1` — loads model index 1 and shows the UI controls.
+- `?hideUI=false#0` — loads model index 0 and shows the controller panel and hotspots.
+- `?hideUI=true#0` — loads model index 0 and hides the controller panel and hotspots.
+- `?hideUI=false#1` — loads model index 1 and shows the controller panel.
+- `?hideUI=true#1` — loads model index 1 and hides the controller panel.
+
+> **Note:** Both `hideUI` and the model `#number` are required in the URL. If either is missing, the viewer will automatically rewrite the URL to the canonical form using `hideUI=false` and `#0` as defaults.
 
 ### Current model index mapping (from `hotspot.json`)
 

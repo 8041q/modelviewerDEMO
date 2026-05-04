@@ -1,5 +1,4 @@
 const viewer = document.getElementById('viewer');
-const controlsContainer = document.getElementById('model-controls');
 
 let modelsConfig = null;
 let currentModel = null;
@@ -15,18 +14,33 @@ function getModelByIndex(index) {
 }
 
 // Parse URL query parameter for hideUI toggle
+// Enforces that the URL always has both ?hideUI= and #<number>
 function parseURLParams() {
   const params = new URLSearchParams(window.location.search);
+  let needsReplace = false;
+
+  if (!params.has('hideUI')) {
+    params.set('hideUI', 'false');
+    needsReplace = true;
+  }
+
+  const hash = window.location.hash || '#0';
+  if (!window.location.hash) needsReplace = true;
+
+  if (needsReplace) {
+    history.replaceState(null, '', `?${params.toString()}${hash}`);
+  }
+
   hideUIControls = params.get('hideUI') === 'true';
 }
 
 // Apply UI visibility based on hideUIControls flag
 function applyUIVisibility() {
   if (hideUIControls) {
-    controlsContainer.classList.add('hidden');
+    controllerPanel.style.display = 'none';
+    viewer.querySelectorAll('.Hotspot').forEach(h => h.style.display = 'none');
     document.body.classList.add('hide-ui');
   } else {
-    controlsContainer.classList.remove('hidden');
     document.body.classList.remove('hide-ui');
   }
 }
@@ -58,18 +72,6 @@ async function loadHotspotConfig() {
 function initializeViewer() {
   modelKeysArray = Object.keys(modelsConfig.models);
   if (!modelKeysArray.length) return console.error('No models in JSON');
-
-  // Create buttons for each model
-  modelKeysArray.forEach((modelName, index) => {
-    const btn = document.createElement('button');
-    btn.textContent = modelsConfig.models[modelName].displayName || modelName;
-    btn.onclick = () => {
-      window.location.hash = index.toString();
-      setModel(modelName);
-    };
-    if (index === 0) btn.classList.add('active');
-    controlsContainer.appendChild(btn);
-  });
 
   // Check for hash in URL, otherwise load first model
   const hash = window.location.hash.slice(1);
@@ -195,24 +197,18 @@ function setModel(modelName) {
 
   viewer.src = modelsConfig.models[modelName].file;
 
-  // Update active button
-  controlsContainer.querySelectorAll('button').forEach(btn => {
-    btn.classList.toggle('active', btn.textContent === (modelsConfig.models[modelName].displayName || modelName));
-  });
-  
   // Update URL hash to reflect current model (find index of model)
   const modelIndex = modelKeysArray.indexOf(modelName);
   if (modelIndex >= 0) {
     window.location.hash = modelIndex.toString();
   }
   
-  applyUIVisibility();
-
   viewer.addEventListener(
     'load',
     () => {
       addHotspots(modelName);
       renderController(modelName);
+      applyUIVisibility();
     },
     { once: true, signal: loadAbortController.signal }
   );

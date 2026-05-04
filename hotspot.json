@@ -3,18 +3,28 @@
     "Z7z": {
       "file": "Z7z-comp.glb",
       "displayName": "Z7z Bed",
-      "hotspots": [
-        {
-          "label": "Headboard",
-          "surface": "912 0 1735 1614 1616 0.476 0.409 0.115",
-          "animation": "Action"
-        },
-        {
-          "label": "Nurse Controller",
-          "surface": "884 0 267 358 360 0.498 0.166 0.336",
-          "animation": "Action.001"
-        }
-      ]
+      "hotspots": [],
+      "controller": {
+        "image": "control.png",
+        "buttons": [
+          {
+            "label": "Headboard",
+            "animation": "Action",
+            "x": 39,
+            "y": 39,
+            "width": 7,
+            "height": 7
+          },
+          {
+            "label": "Nurse Controller",
+            "animation": "Action.001", 
+            "x": 39,
+            "y": 57,
+            "width": 7,
+            "height": 7
+          }
+        ]
+      }
     },
     "headboard": {
       "file": "headboard-comp.glb",

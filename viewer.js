@@ -96,6 +96,50 @@ function clearHotspots() {
   viewer.querySelectorAll('.Hotspot').forEach(h => h.remove());
 }
 
+// ----- Bed Controller Image Panel -----
+
+const controllerPanel = document.getElementById('bed-controller-panel');
+
+function clearController() {
+  controllerPanel.innerHTML = '';
+  controllerPanel.style.display = 'none';
+}
+
+function renderController(modelName) {
+  clearController();
+  const modelConfig = modelsConfig.models[modelName];
+  if (!modelConfig || !modelConfig.controller) return;
+
+  const { image, buttons } = modelConfig.controller;
+
+  // Wrapper keeps buttons positioned relative to the image
+  const wrapper = document.createElement('div');
+  wrapper.className = 'controller-wrapper';
+
+  const img = document.createElement('img');
+  img.src = image;
+  img.alt = 'Bed Controller';
+  img.draggable = false;
+  wrapper.appendChild(img);
+
+  buttons.forEach(btnCfg => {
+    const btn = document.createElement('button');
+    btn.className = 'controller-btn';
+    btn.style.left          = `${btnCfg.x}%`;
+    btn.style.top           = `${btnCfg.y}%`;
+    btn.style.width         = `${btnCfg.width}%`;
+    btn.style.paddingBottom = `${btnCfg.width}%`; /* equals width in px → circle */
+    btn.setAttribute('aria-label', btnCfg.label);
+    btn.title = btnCfg.label;
+
+    btn.addEventListener('click', () => playAnimation(btnCfg.animation, btn));
+    wrapper.appendChild(btn);
+  });
+
+  controllerPanel.appendChild(wrapper);
+  controllerPanel.style.display = 'block';
+}
+
 function addHotspots(modelName) {
   clearHotspots();
   const modelConfig = modelsConfig.models[modelName];
@@ -146,6 +190,7 @@ function setModel(modelName) {
   loadAbortController = new AbortController();
 
   clearHotspots();
+  clearController();
   stopAnimations();
 
   viewer.src = modelsConfig.models[modelName].file;
@@ -165,7 +210,10 @@ function setModel(modelName) {
 
   viewer.addEventListener(
     'load',
-    () => addHotspots(modelName),
+    () => {
+      addHotspots(modelName);
+      renderController(modelName);
+    },
     { once: true, signal: loadAbortController.signal }
   );
 }

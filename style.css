@@ -111,6 +111,66 @@ model-viewer::part(hotspot) {
   transform: translateY(-2px);
 }
 
+/* ===== Bed Controller Image Panel ===== */
+#bed-controller-panel {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 500;
+  width: 30vw;        /* ← change this to resize the controller image */
+  min-width: 200px;
+  max-width: 480px;
+  display: none;
+  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
+}
+
+.controller-wrapper {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  user-select: none;
+}
+
+.controller-wrapper img {
+  width: 100%;
+  height: auto;
+  display: block;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.controller-btn {
+  position: absolute;
+  box-sizing: content-box; /* ensures padding-bottom% == width% in pixels → perfect circle */
+  background: transparent;
+  border: 2px solid red; /* TODO: remove before production */
+  border-radius: 50%;
+  height: 0;
+  cursor: pointer;
+  padding: 0;
+  outline: none;
+}
+
+.controller-btn-tooltip {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(0, 0, 0, 0.78);
+  color: #fff;
+  font-size: 11px;
+  padding: 4px 8px;
+  border-radius: 4px;
+  white-space: nowrap;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.18s ease;
+}
+
+.controller-btn:hover .controller-btn-tooltip {
+  opacity: 1;
+}
+
 /* Progress Bar */
 #progress-container {
   position: fixed;

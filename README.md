@@ -8,7 +8,7 @@ A minimal web-based 3D model viewer demo. Open `index.html` in a browser (or ser
 - Or run a local HTTP server (recommended) from the project root:
 
 ```bash
-python -m http.server 8000
+python -m http.server 8080
 # then open http://localhost:8080 in your browser
 ```
 

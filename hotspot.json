@@ -1,7 +1,7 @@
 {
   "models": {
     "Z7z": {
-      "file": "Z7z-comp.glb",
+      "file": "Z7z-optimized.glb",
       "displayName": "Z7z Bed",
       "hotspots": [],
       "controller": {
@@ -17,7 +17,7 @@
           },
           {
             "label": "Nurse Controller",
-            "animation": "Action.001", 
+            "animation": "Action.001",
             "x": 39,
             "y": 57,
             "width": 7,

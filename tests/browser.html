@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Viewer performance comparison</title>
+<style>
+  body { margin: 0; font: 14px system-ui; background: #fff; }
+  header { padding: 12px; }
+  button, select { margin: 4px; padding: 6px; }
+  iframe { border: 0; width: 100%; height: 720px; display: block; }
+  pre { white-space: pre-wrap; padding: 12px; }
+</style>
+<header>
+  <label>Viewer <select id="variant"><option value="baseline">Baseline</option><option value="optimized">Optimized</option></select></label>
+  <label>Bed asset <select id="asset"><option value="Z7z-comp.glb">Original compressed</option><option value=".performance/Z7z-cleaned.glb">Duplicate removed</option><option value="Z7z-optimized.glb">Optimized</option></select></label>
+  <button id="cold">Measure cold asset load</button><button id="warm">Measure cached asset load</button>
+  <button id="headboard">Headboard animation</button><button id="nurse">Nurse animation</button>
+  <button id="start">Start pose</button><button id="mid">Midpoint pose</button><button id="end">End pose</button>
+  <button id="regression">Run browser regressions</button>
+  <p>Both variants use the same iframe dimensions and camera. Cold runs bypass the GLB cache; library/decoder caches remain warm after their first use. Frame intervals measure main-thread cadence during rotation, not GPU execution time.</p>
+</header>
+<iframe id="frame" title="Viewer under test"></iframe>
+<pre id="results">Choose a variant and asset, then measure.</pre>
+<script type="module" src="browser.js"></script>
+</html>

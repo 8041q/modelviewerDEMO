@@ -1,129 +1,100 @@
 # Model Viewer Demo
 
-A minimal web-based 3D model viewer demo. Open `index.html` in a browser (or serve the folder over HTTP) to view the scene and hotspots defined in `hotspot.json`.
+A standalone 3D viewer for iframe embedding, using `@google/model-viewer@4.0.0`. Models, hotspots, and image controllers are configured in `hotspot.json`.
 
-## Quick start
+## Run locally
 
-- Double-click `index.html` to open in your default browser.
-- Or run a local HTTP server (recommended) from the project root:
-
-```bash
-python -m http.server 8080
-# then open http://localhost:8080 in your browser
+```sh
+npm ci
+npm run serve
 ```
 
-## What this is
+Open http://127.0.0.1:8080. Production hosting only needs the static viewer files and referenced assets; Node and the asset tools are development dependencies. Serve over HTTP or HTTPS: fetching JSON and loading ES modules does not reliably work through `file://`.
 
-A tiny demo that loads 3D models and displays interactive hotspots. The viewer code is in `viewer.js` and styles are in `style.css`.
+## Add more GLB models automatically
 
-## License & proprietary models
+Run `npm run serve` once, then drop self-contained `.glb` files into `models/`. Files already there are imported at startup. The server waits for copying to settle, prepares a separate copy in `models/optimized/`, and appends it to `hotspot.json`. Open viewers receive the updated model list automatically, usually within a few seconds after preparation finishes. Choose the new entry from the Model selector; no import command or page refresh is needed. Embedded animations get playback buttons automatically.
 
-- Source code: MIT License (see LICENSE).
-- 3D model assets: Proprietary, restricted license (see LICENSE-ASSETS) (for example `.glb`, `.gltf`, `.fbx`).
+Manual changes to `hotspot.json` also update open viewers. Adding entries preserves the selected model, camera, and animation pose. Replacing the selected model's file loads the replacement. Invalid configuration updates leave the working model list intact. Live notifications are added by the local server; the standalone page remains usable on static hosts without a persistent connection.
 
-## Files of interest
+The import command is only needed when preparing a static deployment without the running local server:
 
-- `index.html` — page entry
-- `viewer.js` — viewer logic
-- `hotspot.json` — scene/hotspot definitions (references model files)
-- `style.css` — styling
-
-## Usage URLs
-
-The viewer supports two URL controls:
-- Query parameter `hideUI=true` or `hideUI=false` to hide/show the bed controller image panel and its hotspots.
-- Hash `#<index>` to open a specific model by numeric index (0-based) matching the order in `hotspot.json`.
-
-### Examples
-
-- `?hideUI=false#0` — loads model index 0 and shows the controller panel and hotspots.
-- `?hideUI=true#0` — loads model index 0 and hides the controller panel and hotspots.
-- `?hideUI=false#1` — loads model index 1 and shows the controller panel.
-- `?hideUI=true#1` — loads model index 1 and hides the controller panel.
-
-> **Note:** Both `hideUI` and the model `#number` are required in the URL. If either is missing, the viewer will automatically rewrite the URL to the canonical form using `hideUI=false` and `#0` as defaults.
-
-### Current model index mapping (from `hotspot.json`)
-
-- `#0` — Z7z Bed
-- `#1` — Headboard
-
----
-
-## GLB Compression (DRACO + KTX2)
-
-Models are compressed using `@gltf-transform/cli` for faster load times. This is a one-time CLI step per file — `<model-viewer>` handles decompression automatically via its built-in decoders, so no code changes are needed.
-
-### Results
-
-| Model | Original | Compressed |
-|-------|----------|------------|
-| Z7z Bed | ~87 MB | ~15 MB |
-| Headboard | ~1 MB | ~KB range |
-
-### Prerequisites
-
-```bash
-npm install --global @gltf-transform/cli
+```sh
+npm run models:import
 ```
 
-KTX2 texture compression also requires the `ktx` binary from KTX-Software 4.3.0+:
-- **macOS:** `brew install ktx-software`
-- **Windows/Linux:** download from https://github.com/KhronosGroup/KTX-Software/releases and add the `bin` folder to your PATH.
+Deploy the static viewer, updated `hotspot.json`, and referenced optimized assets. Static hosting cannot watch a local folder or prepare models at runtime. The importer is an asset preparation tool; visitors need no Node runtime.
 
-On Windows (PowerShell), add it for the current session with:
+Replacing a source with the same filename updates its existing entry and keeps its numeric URL. Outputs use content-based filenames to avoid stale GLB caches. Originals, existing display names, hotspots, and custom controllers are preserved. Invalid or partially copied files are retried on later scans; one failed model does not block others. Removing a source does not automatically remove its configuration entry.
 
-```powershell
-$env:Path += ";C:\Program Files\KTX-Software\bin"
-```
+Generic preparation deduplicates materials, joins eligible static meshes, and compresses with Draco. It preserves triangles, animated hierarchies, and texture bytes. Reused meshes retain their hierarchy; skin, morph, instancing, and unknown-extension assets use unchanged copies. If preparation cannot preserve the data or provides no size/draw-call benefit, the original copy is used. Models with configured surface hotspots keep their current prepared asset; source changes wait until those anchors are removed or remapped. Reports live in `models/import-manifest.json`. Lossy simplification and duplicate-branch removal remain specific to the audited bed. See [models/README.md](models/README.md) for details.
 
-### Compression pipeline
-
-#### Simple models (no instancing, no animations)
-
-```bash
-gltf-transform optimize model.glb model-comp.glb --compress draco --texture-compress ktx2
-```
-
-#### Complex models with instancing
-
-Instanced meshes are skipped by DRACO unless flattened first. Use `join` to bake instances, then compress geometry and textures separately:
-
-```bash
-gltf-transform join model.glb model-tmp1.glb
-gltf-transform prune model-tmp1.glb model-tmp2.glb --keep-attributes false
-gltf-transform draco model-tmp2.glb model-comp.glb
-del model-tmp1.glb model-tmp2.glb
-```
-
-Notes:
-- `join` bakes out all mesh instances so DRACO can compress them. It will temporarily increase file size before DRACO brings it back down.
-- `prune --keep-attributes false` strips unused vertex attributes and animation data.
-- Texture compression (`etc1s` / `uastc`) is skipped here — running it after DRACO decodes geometry and re-encodes, which can increase file size. Test before committing to that step.
-- If you want to attempt texture compression, do it as a final step and verify the output size: `gltf-transform uastc model-comp.glb model-comp-tex.glb --level 2`
-
-### Enabling decoders in `<model-viewer>`
-
-When serving compressed GLBs, explicitly set the decoder paths on the `<model-viewer>` element to ensure KTX2 textures render correctly across all browsers:
+## Embed in another project
 
 ```html
-<model-viewer
-  ...
-  ktx2-transcoder-path="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/decoders/"
-  draco-decoder-path="https://www.gstatic.com/draco/versioned/decoders/1.5.7/"
-></model-viewer>
+<iframe
+  src="https://your-host/viewer/index.html?hideUI=false#0"
+  title="3D model viewer"
+  style="width:100%;height:600px;border:0"
+></iframe>
 ```
 
-Also pin the model-viewer script to a specific version to prevent regressions:
+- `hideUI=false`: show model selection, animation controls, the controller panel, and model hotspots.
+- `hideUI=true`: hide those controls and avoid downloading the controller image.
+- `#0`: Z7z Bed; `#1`: Headboard. Indices follow the order in `hotspot.json`.
+- Missing URL controls default to `?hideUI=false#0`; invalid model indices fall back to `#0`.
+- Model load failures display a Retry button. It reloads only this viewer document, preserving its URL and model source, because the pinned library caches failed loads. Selecting another valid model also recovers.
+- Controller and hotspot animations play once, stop at their last frame, and restart when clicked again.
+- The initial camera distance fits the model automatically for landscape and portrait embeds.
 
-```html
-<script type="module" src="https://cdn.jsdelivr.net/npm/@google/model-viewer@4.0.0/dist/model-viewer.min.js"></script>
+Keep the existing `models` JSON shape when adding assets: `file`, optional `displayName`, optional `hotspots`, and optional `controller` with an `image` and `buttons`. Each button or hotspot names a clip exported in the GLB. Controls referencing unavailable clips are disabled.
+
+Surface hotspots encode mesh/vertex references. Joining or simplifying a model changes those references; regenerate its surface anchors after optimization. The supplied models have no surface hotspots.
+
+## Asset preparation
+
+```sh
+npm run assets:build
+npm run assets:inspect
+npm test
 ```
 
-### Troubleshooting
+The bed build always starts from `assets-original/Z7z.glb` and writes `Z7z-optimized.glb`, which the viewer now loads. The original and previous compressed GLBs are retained.
 
-**`etc1s` or `uastc` increases file size** — this happens when texture compression runs after DRACO, because gltf-transform must decode the geometry first. Skip texture compression or run it before the DRACO step.
+The build verifies and removes the redundant bed branch, retaining its matching animated groups and the unique headboard-holder geometry. It then deduplicates materials, flattens static hierarchy, joins compatible meshes without crossing animation boundaries, and simplifies geometry with a target ratio of 0.5 and an error limit of 0.001. The error limit takes precedence over reaching the target ratio. Draco compression runs last; the original JPEG bytes are retained.
 
-**`error: Unknown command deinstance`** — use `gltf-transform join` instead, which flattens instances as a side effect.
+Duplicate removal is a guarded repair for this particular bed. It requires 929 matching mesh nodes, identical world placement, and matching animation samplers; it refuses changed source structure. Do not use branch removal as a general-purpose optimization for other models.
 
-**`error: Command "ktx" not found`** — KTX-Software is not on your PATH. If already installed, do set $env:Path as above indicated
+The intermediate duplicate-only asset and asset report are written to `.performance/`. That folder is ignored by Git. The general importer uses a more conservative pipeline for future models. The bed's single 91.7 KB JPEG does not warrant a KTX2 pipeline.
+
+## Decoders and rendering
+
+The pinned library is imported by `viewer.js`, and initialization waits for custom-element registration before assigning `src`. Model-viewer loads its default Draco decoder on demand and handles adaptive rendering resolution automatically.
+
+Decoder locations are JavaScript constructor configuration, not HTML attributes. To override a decoder, configure the registered constructor before assigning any model source:
+
+```js
+const ModelViewerElement = customElements.get('model-viewer');
+ModelViewerElement.dracoDecoderLocation = 'https://your-host/draco/';
+ModelViewerElement.ktx2TranscoderLocation = 'https://your-host/basis/';
+```
+
+See the [official loading and decoder documentation](https://modelviewer.dev/examples/loading/). Default decoders and the library require internet access; use those documented settings and a locally hosted library if offline operation is required.
+
+## Browser verification
+
+With `npm run serve` running, open http://127.0.0.1:8080/tests/browser.html.
+
+- Choose the optimized viewer and asset to measure loading and frame cadence during rotation.
+- Cold measurements use a fresh GLB URL. For a true cached measurement, click the cached-load button twice; confirm that the reported transfer bytes are zero.
+- The runtime and decoder remain cached after their first use. These measurements isolate asset loading and initialization rather than simulate a fully cold browser.
+- Use animation and pose controls for visual comparisons.
+- Run browser regressions to check registration, cached loads, rapid switching, animation completion/restarts, hidden UI, load failures, and retrying the same URL.
+
+A baseline viewer snapshot is needed to select the baseline variant. Before changing the viewer, copy `index.html`, `viewer.js`, `style.css`, and `hotspot.json` into `.performance/baseline/`. This implementation's snapshot is already present locally. Baseline snapshots are development artifacts, not production assets.
+
+Measured results and limitations are recorded in [docs/performance.md](docs/performance.md). A phone-sized desktop viewport checks layout; performance on a physical phone must be measured on that device.
+
+## License
+
+Source code: MIT (see LICENSE). Model assets: proprietary and restricted (see LICENSE-ASSETS). Optimization does not change their license.

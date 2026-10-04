@@ -7,6 +7,59 @@ body {
   text-align: center;
 }
 
+[hidden] { display: none !important; }
+
+#model-picker {
+  position: fixed;
+  top: 18px;
+  left: 20px;
+  z-index: 500;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: calc(100vw - 40px);
+  padding: 8px 12px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+#model-select { min-width: 0; max-width: 65vw; padding: 6px; }
+
+#animation-panel {
+  position: fixed;
+  bottom: 20px;
+  left: 20px;
+  z-index: 500;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  max-width: calc(100vw - 40px);
+  max-height: 35vh;
+  overflow: auto;
+  padding: 10px;
+  box-sizing: border-box;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.12);
+}
+
+#animation-panel button { padding: 10px 14px; cursor: pointer; }
+
+#load-status {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  z-index: 2001;
+  padding: 20px;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.15);
+}
+
+#retry-load { padding: 8px 20px; cursor: pointer; }
+
 model-viewer {
   width: 100%;
   height: 100vh;
@@ -86,7 +139,7 @@ model-viewer::part(hotspot) {
   width: 65vw;        /* ← change this to resize the controller image */
   min-width: 200px;
   max-width: 480px;
-  display: none;
+  display: block;
   filter: drop-shadow(0 4px 12px rgba(0,0,0,0.35));
 }
 

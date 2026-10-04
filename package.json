@@ -1,0 +1,19 @@
+{
+  "name": "model-viewer-demo",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "serve": "node scripts/serve.mjs",
+    "models:import": "node scripts/import-models.mjs",
+    "assets:build": "node scripts/optimize-bed.mjs",
+    "assets:inspect": "node scripts/inspect-glb.mjs Z7z-comp.glb Z7z-optimized.glb headboard-comp.glb",
+    "test": "node --test tests/assets.test.mjs tests/import-models.test.mjs"
+  },
+  "devDependencies": {
+    "@gltf-transform/core": "4.5.1",
+    "@gltf-transform/extensions": "4.5.1",
+    "@gltf-transform/functions": "4.5.1",
+    "draco3dgltf": "1.5.7",
+    "meshoptimizer": "1.1.1"
+  }
+}
